@@ -45,7 +45,7 @@ Install these PHP packages:
 
 .. code-block:: bash
 
-   apt install php8.2-fpm php8.2-cli php8.2-bz2 php8.2-curl php8.2-gd php8.2-intl php8.2-mbstring php8.2-pgsql php8.2-sqlite3 php8.2-xml php8.2-ldap php8.2-redis
+   apt install php8.3-fpm php8.3-cli php8.3-bz2 php8.3-curl php8.3-gd php8.3-intl php8.3-mbstring php8.3-pgsql php8.3-sqlite3 php8.3-xml php8.3-ldap php8.3-redis php8.3-cgi
 
 Web configuration
 -----------------
@@ -83,7 +83,7 @@ Create a new file /etc/nginx/sites-available/lizmap.conf:
            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
            fastcgi_param PATH_INFO $path_info;
            fastcgi_param PATH_TRANSLATED $document_root$path_info;
-           fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+           fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
            fastcgi_param SERVER_NAME $http_host;
         }
     }
@@ -105,6 +105,25 @@ You must restart the Nginx server to validate the configuration.
 .. code-block:: bash
 
    service nginx restart
+
+Optimize FastCGI Pool Manager (FPM)
+-----------------------------------
+For a high-capacity server handling multiple Lizmap instances under heavy load, more aggressive PHP-FPM settings might be needed. Edit /etc/php/8.3/fpm/pool.d/www.conf and change the following settings:
+
+.. code-block:: bash
+
+   pm = dynamic
+   pm.max_children = 200
+   pm.start_servers = 50
+   pm.min_spare_servers = 25
+   pm.max_spare_servers = 75
+   pm.max_requests = 1000
+
+Those values are examples and you will need to test how much RAM/CPU this is going to consume. Reload php-fpm to apply changed settings:
+
+.. code-block:: bash
+
+   sudo systemctl reload php8.3-fpm
 
 
 Enable geolocation
@@ -215,8 +234,8 @@ to edit PostgreSQL layer. You must **only** check that the Lizmap server can acc
 
 .. code-block:: bash
 
-   apt install php8.2-pgsql
-   service php8.2-fpm restart
+   apt install php8.3-pgsql
+   service php8.3-fpm restart
 
 For Lizmap logs, users and groups, it can be either stored in SqLite or PostgreSQL. To store these information in
 PostgreSQL, follow these instructions.
